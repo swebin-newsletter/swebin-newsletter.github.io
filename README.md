@@ -1,2 +1,3 @@
-# swebin-newsletter.github.io
-Generated public archive for SWebin Newsletter
+# SWebin Newsletter Public Archive
+
+Generated public GitHub Pages output only. Source code, private drafts and subscriber data belong in private repositories.
