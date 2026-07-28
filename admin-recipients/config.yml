@@ -16,6 +16,13 @@ backend:
 site_url: https://swebin-newsletter.github.io
 display_url: https://swebin-newsletter.github.io
 
+# Sveltia CMS requires a media folder to be configured even though this instance has no image
+# widgets (recipients/senders are plain data, no uploads) -- this repo has no public site of its
+# own, so there's no meaningful public_folder; the value only needs to exist for Sveltia's config
+# validator to pass.
+media_folder: uploads
+public_folder: /uploads
+
 collections:
   - name: recipients
     label: 수신인 관리
