@@ -98,6 +98,15 @@ async function registerPreSaveHook() {
   });
 }
 
+/**
+ * Starts collapsed to a small tab so a non-technical editor's first view of the entry form isn't
+ * a large dark technical panel -- this tool is for the (optional) "did the original article
+ * change since I last reviewed it?" check, not something every save requires looking at.
+ */
+function isCollapsed(host) {
+  return host.dataset.collapsed !== 'false';
+}
+
 function renderPanel(host, state) {
   if (!host.shadowRoot) {
     host.attachShadow({ mode: 'open' });
@@ -106,6 +115,16 @@ function renderPanel(host, state) {
 
   const style = `
     :host { all: initial; }
+    .tab {
+      position: fixed; right: 16px; bottom: 16px; z-index: 999999;
+      background: #1f2430; color: #eef1f6; border-radius: 999px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3); font: 13px/1.5 -apple-system, system-ui, sans-serif;
+      padding: 8px 14px; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px;
+    }
+    .badge-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+    .badge-dot.changed { background: #ff8a8a; }
+    .badge-dot.ok { background: #7de08a; }
+    .badge-dot.unknown { background: #888; }
     .panel {
       position: fixed; right: 16px; bottom: 16px; z-index: 999999;
       width: 360px; max-height: 70vh; overflow-y: auto;
@@ -113,13 +132,15 @@ function renderPanel(host, state) {
       box-shadow: 0 6px 24px rgba(0,0,0,.35); font: 13px/1.5 -apple-system, system-ui, sans-serif;
       padding: 12px 14px;
     }
-    .panel h3 { margin: 0 0 8px; font-size: 13px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .panel-head h3 { margin: 0; font-size: 13px; }
+    .close { background: none; border: none; color: #9aa2b1; cursor: pointer; font-size: 16px; padding: 0 4px; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin-bottom: 8px; }
     .badge.changed { background: #5c2b2b; color: #ffd1d1; }
     .badge.ok { background: #234a2b; color: #c9f7cf; }
     .badge.unknown { background: #444; color: #ddd; }
     pre { white-space: pre-wrap; word-break: break-word; background: #14171f; padding: 8px; border-radius: 6px; max-height: 240px; overflow: auto; }
-    button { cursor: pointer; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; margin-right: 6px; }
+    button.action { cursor: pointer; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; margin-right: 6px; }
     .primary { background: #4c7cf0; color: white; }
     .primary:disabled { background: #3a3f4d; color: #8a90a0; cursor: not-allowed; }
     a.link { color: #9cc0ff; }
@@ -136,10 +157,25 @@ function renderPanel(host, state) {
         ? '원문 확인 완료 (최신)'
         : '원문 변경 여부 확인 불가';
 
+  if (isCollapsed(host)) {
+    root.innerHTML = `
+      <style>${style}</style>
+      <button class="tab" id="expand"><span class="badge-dot ${badgeClass}"></span>원문 도구</button>
+    `;
+    root.getElementById('expand').addEventListener('click', () => {
+      host.dataset.collapsed = 'false';
+      renderPanel(host, state);
+    });
+    return;
+  }
+
   root.innerHTML = `
     <style>${style}</style>
     <div class="panel">
-      <h3>원문 도구 - ${state.sourceId}</h3>
+      <div class="panel-head">
+        <h3>원문 도구 - ${state.sourceId}</h3>
+        <button class="close" id="collapse" title="접기" aria-label="접기">×</button>
+      </div>
       <div class="row"><span class="badge ${badgeClass}">${badgeText}</span></div>
       ${
         state.fetchError
@@ -148,7 +184,7 @@ function renderPanel(host, state) {
           : `<div class="row"><strong>원문 전체 보기 (읽기 전용)</strong><pre>${escapeHtml(state.sourceBody || '(비어 있음)')}</pre></div>`
       }
       <div class="row">
-        <button class="primary" id="mark-reviewed" ${state.contentSha256 ? '' : 'disabled'}>원문 확인 완료로 표시</button>
+        <button class="action primary" id="mark-reviewed" ${state.contentSha256 ? '' : 'disabled'}>원문 확인 완료로 표시</button>
       </div>
       <div class="row muted" id="mark-reviewed-status"></div>
       <div class="row muted">
@@ -157,6 +193,11 @@ function renderPanel(host, state) {
       </div>
     </div>
   `;
+
+  root.getElementById('collapse').addEventListener('click', () => {
+    host.dataset.collapsed = 'true';
+    renderPanel(host, state);
+  });
 
   const button = root.getElementById('mark-reviewed');
   const status = root.getElementById('mark-reviewed-status');
