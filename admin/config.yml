@@ -2,10 +2,12 @@ backend:
   name: github
   repo: swebin-dev/swebin-newsletter
   branch: main
-  base_url: https://REPLACE-WITH-SVELTIA-AUTH-WORKER.workers.dev
+  base_url: https://swebin-sveltia-auth.swebin-newsletter.workers.dev
 
-site_url: https://newsletter.swebin.com
-display_url: https://newsletter.swebin.com
+# Custom domain (newsletter.swebin.com) is not set up yet -- see MANUAL_ACTIONS_REQUIRED.md.
+# Points at the real GitHub Pages URL until that DNS/CNAME work happens.
+site_url: https://swebin-newsletter.github.io
+display_url: https://swebin-newsletter.github.io
 media_folder: public/uploads
 public_folder: /uploads
 

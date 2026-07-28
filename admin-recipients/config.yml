@@ -2,7 +2,7 @@ backend:
   name: github
   repo: swebin-dev/swebin-newsletter-data
   branch: main
-  base_url: https://REPLACE-SVELTIA-AUTH.workers.dev
+  base_url: https://swebin-sveltia-auth.swebin-newsletter.workers.dev
 
 # This is a SEPARATE Sveltia CMS instance from /admin/ (which manages the source repo's
 # articles/issues). It is scoped to the private swebin-newsletter-data repo specifically so that
