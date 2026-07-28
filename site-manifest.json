@@ -10,6 +10,15 @@
     "source_count": 3
   },
   {
+    "issue_id": "2000-03",
+    "title": "(데모) 비공개(unpublished) 상태 화면 확인용 샘플",
+    "public_url": "https://swebin-newsletter.github.io/issues/2000-03/",
+    "publication_status": "published",
+    "published_at": "2026-07-29T02:00:00+09:00",
+    "updated_at": "2026-07-29T02:00:00+09:00",
+    "source_count": 1
+  },
+  {
     "issue_id": "2000-02",
     "title": "(데모) 공개(published) 상태 화면 확인용 샘플",
     "public_url": "https://swebin-newsletter.github.io/issues/2000-02/",
