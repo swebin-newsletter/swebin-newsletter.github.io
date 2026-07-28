@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>SWebin Newsletter CMS</title>
+  </head>
+  <body>
+    <script src="https://unpkg.com/@sveltia/cms@0.174.0/dist/sveltia-cms.js"></script>
+    <!--
+    Custom editorial-CMS extensions (source-changed badge/panel + AI prompt-copy tool). Plain
+    vanilla-JS modules; source-tools.js uses Sveltia's documented `CMS.registerEventListener`
+    API where possible and falls back to DOM-level tricks only where no documented API exists
+    (see public/admin/extensions/README.md for exactly what is fully wired vs. best-effort).
+  -->
+    <script type="module" src="/admin/extensions/source-tools.js"></script>
+    <script type="module" src="/admin/extensions/ai-prompt-copy.js"></script>
+  </body>
+</html>

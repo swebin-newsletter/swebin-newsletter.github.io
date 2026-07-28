@@ -1,0 +1,70 @@
+backend:
+  name: github
+  repo: swebin-dev/swebin-newsletter-data
+  branch: main
+  base_url: https://REPLACE-SVELTIA-AUTH.workers.dev
+
+# This is a SEPARATE Sveltia CMS instance from /admin/ (which manages the source repo's
+# articles/issues). It is scoped to the private swebin-newsletter-data repo specifically so that
+# recipient-list access can be granted independently of general editorial (article/issue) access
+# -- someone who only edits content does not automatically get to see or change who receives the
+# newsletter. Both instances share the same GitHub OAuth login flow via the same sveltia-auth
+# Worker (base_url above); access is enforced by each person's real GitHub permissions on the
+# repo the CMS instance is configured against, not by anything in this file.
+
+site_url: https://swebin-newsletter.github.io
+display_url: https://swebin-newsletter.github.io
+
+collections:
+  - name: recipients
+    label: 수신인 관리
+    files:
+      - name: recipients
+        label: 발송 대상 이메일 목록
+        file: data/recipients.json
+        fields:
+          - label: 수신인 목록
+            name: recipients
+            widget: list
+            summary: '{{fields.email}}'
+            fields:
+              - { label: 이메일, name: email, widget: string }
+              - {
+                  label: 추가일,
+                  name: added_at,
+                  widget: datetime,
+                  format: 'YYYY-MM-DDTHH:mm:ssZ',
+                  date_format: 'YYYY-MM-DD',
+                  time_format: 'HH:mm',
+                }
+              - { label: 추가한 사람, name: added_by, widget: string, required: false }
+              - { label: 메모, name: note, widget: string, required: false }
+  - name: senders
+    label: 발신 프로필 관리
+    files:
+      - name: senders
+        label: 발신 프로필 목록
+        file: data/senders.json
+        fields:
+          - label: 발신 프로필 (SMTP 비밀번호는 여기 없음 -- GitHub Secret에만 존재)
+            name: senders
+            widget: list
+            summary: '{{fields.display_name}} ({{fields.id}})'
+            fields:
+              - { label: ID (코드에서 참조하는 고유 식별자, 변경 금지), name: id, widget: string }
+              - { label: 표시 이름, name: display_name, widget: string }
+              - { label: From 이름, name: from_name, widget: string }
+              - { label: From 이메일, name: from_email, widget: string }
+              - { label: Reply-To, name: reply_to, widget: string }
+              - { label: SMTP 인증 사용자, name: smtp_user, widget: string }
+              - { label: SMTP Host, name: smtp_host, widget: string }
+              - { label: SMTP Port, name: smtp_port, widget: number, value_type: int }
+              - { label: SMTP TLS(secure), name: smtp_secure, widget: boolean }
+              - {
+                  label: GitHub Secret 이름 (비밀번호는 여기가 아니라 GitHub Secrets에 저장),
+                  name: github_secret_name,
+                  widget: string,
+                }
+              - { label: 활성화, name: enabled, widget: boolean }
+              - { label: 기본 프로필 여부, name: is_default, widget: boolean }
+              - { label: 설명, name: description, widget: text, required: false }
