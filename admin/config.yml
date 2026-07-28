@@ -20,9 +20,49 @@ collections:
     identifier_field: source_id
     create: false
     delete: false
-    summary: '{{source_id}} · {{status}} · {{newsletter_title}}'
+    summary: '{{status}} · {{source_id}} · {{newsletter_title}}'
     fields:
-      - { label: Source ID, name: source_id, widget: string, readonly: true }
+      - {
+          label: '1. 편집 상태 (준비되면 "ready"로 바꿔주세요)',
+          name: status,
+          widget: select,
+          options: [inbox, editing, ready, excluded],
+          hint: 'inbox=크롤러가 방금 가져옴, editing=편집 중, ready=발행 준비 완료, excluded=사용 안 함',
+        }
+      - {
+          label: '2. 뉴스레터 제목',
+          name: newsletter_title,
+          widget: string,
+          required: false,
+          hint: '비워두면 아래 원문 제목을 그대로 사용합니다.',
+        }
+      - {
+          label: '3. 뉴스레터 요약',
+          name: newsletter_summary,
+          widget: text,
+          required: false,
+          hint: '비워두면 아래 원문 요약을 그대로 사용합니다.',
+        }
+      - { label: '4. 썸네일 이미지', name: thumbnail, widget: image, required: false }
+      - {
+          label: '5. 편집 메모 (팀 내부용, 독자에게 발송되지 않음)',
+          name: editor_notes,
+          widget: text,
+          required: false,
+        }
+      - {
+          label: '6. 뉴스레터 본문 (발행되는 경우에만)',
+          name: body,
+          widget: markdown,
+          required: false,
+        }
+      - {
+          label: '— 원문 정보 (자동 수집됨, 직접 수정 금지) —',
+          name: source_id,
+          widget: string,
+          readonly: true,
+          hint: '아래 필드들은 크롤러가 자동으로 채운 원문 정보입니다. 위 1~6번 필드만 직접 편집하세요.',
+        }
       - { label: 원문 URL, name: source_url, widget: string, readonly: true }
       - { label: 원문 제목, name: source_title, widget: string, readonly: true }
       - { label: 작성자, name: source_author, widget: string, readonly: true }
@@ -30,23 +70,12 @@ collections:
       - { label: 카테고리, name: source_category, widget: string, readonly: true }
       - { label: 원문 요약, name: source_excerpt, widget: text, readonly: true, required: false }
       - {
-          label: '원문 확인 완료 (자동 기록, 직접 수정 금지)',
+          label: '원문 확인 완료 표시 (자동 기록)',
           name: last_reviewed_content_sha256,
           widget: string,
           required: false,
-          hint: '/admin/extensions/source-tools.js의 "원문 확인 완료로 표시" 버튼이 채웁니다. 원문의 content_sha256과 비교해 원문 변경 배지를 계산하는 데 쓰입니다.',
+          hint: '화면 우측 하단 "원문 도구" 패널의 버튼으로 기록됩니다. 직접 입력하지 마세요.',
         }
-      - {
-          label: 편집 상태,
-          name: status,
-          widget: select,
-          options: [inbox, editing, ready, excluded],
-        }
-      - { label: 뉴스레터 제목, name: newsletter_title, widget: string, required: false }
-      - { label: 뉴스레터 요약, name: newsletter_summary, widget: text, required: false }
-      - { label: 썸네일, name: thumbnail, widget: image, required: false }
-      - { label: 편집 메모, name: editor_notes, widget: text, required: false }
-      - { label: 뉴스레터 본문, name: body, widget: markdown, required: false }
 
   - name: issues
     label: 뉴스레터 호
@@ -57,31 +86,45 @@ collections:
     delete: false
     summary: '{{issue_id}} · {{status}} · {{subject}}'
     fields:
-      - { label: 호 ID, name: issue_id, widget: string, hint: YYYY-MM }
+      - { label: '1. 호 ID', name: issue_id, widget: string, hint: '예: 2026-08 (연-월 형식)' }
       - {
-          label: 상태,
+          label: '2. 상태',
           name: status,
           widget: select,
           options: [draft, review_requested, approved, sending, sent, cancelled],
+          hint: 'draft=작성 중 → review_requested=검토 요청 → approved=발행 승인 → sending/sent는 발송 시 자동 전환됩니다.',
         }
-      - { label: 발행일, name: publish_date, widget: datetime, time_format: false }
-      - { label: 메일 제목, name: subject, widget: string }
-      - { label: 프리헤더, name: preheader, widget: string, required: false }
-      - label: 기사
+      - { label: '3. 발행일', name: publish_date, widget: datetime, time_format: false }
+      - { label: '4. 메일 제목', name: subject, widget: string }
+      - {
+          label: '5. 프리헤더 (메일 미리보기 문구)',
+          name: preheader,
+          widget: string,
+          required: false,
+        }
+      - label: '6. 포함할 기사 (순서대로)'
         name: articles
         widget: list
         required: false
+        summary: '{{fields.section}} · {{fields.source_id}}'
         fields:
-          - label: 기사
+          - label: 기사 선택
             name: source_id
             widget: relation
             collection: articles
             search_fields: [source_id, source_title, newsletter_title]
             value_field: source_id
-            display_fields: [source_id, newsletter_title]
-          - { label: 섹션, name: section, widget: string }
-          - { label: 순서, name: order, widget: number, value_type: int, min: 1 }
-          - { label: 재사용 허용, name: allow_reuse, widget: boolean, default: false }
+            display_fields: [newsletter_title, source_id]
+            hint: '"기사 편집"에서 status를 ready로 바꿔둔 기사만 검색되지는 않으니, 발행 준비가 끝난 기사만 골라주세요.'
+          - { label: '섹션 이름 (예: 이달의 이슈)', name: section, widget: string }
+          - { label: 이 섹션 안에서의 순서, name: order, widget: number, value_type: int, min: 1 }
+          - {
+              label: 재사용 허용,
+              name: allow_reuse,
+              widget: boolean,
+              default: false,
+              hint: '이미 다른 호에 쓴 기사를 다시 쓰려면 체크하고 아래 사유/승인자를 채우세요.',
+            }
           - { label: 재사용 사유, name: reuse_reason, widget: text, required: false }
           - { label: 재사용 승인자, name: reuse_approved_by, widget: string, required: false }
-      - { label: 도입문과 맺음말, name: body, widget: markdown, required: false }
+      - { label: '7. 도입문과 맺음말', name: body, widget: markdown, required: false }

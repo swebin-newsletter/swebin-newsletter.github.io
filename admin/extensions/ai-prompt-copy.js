@@ -67,12 +67,27 @@ function bodyAfterFrontmatter(markdown) {
   return (markdown || '').replace(/^---\n[\s\S]*?\n---\n?/, '').trim();
 }
 
+/**
+ * Starts collapsed to a small tab -- this is an optional power-user tool (copy a prompt for an
+ * external AI chat tool), not something every save requires, so it shouldn't cover a large part
+ * of a non-technical editor's screen by default.
+ */
+function isCollapsed(host) {
+  return host.dataset.collapsed !== 'false';
+}
+
 function renderPanel(host, model) {
   if (!host.shadowRoot) host.attachShadow({ mode: 'open' });
   const root = host.shadowRoot;
 
   const style = `
     :host { all: initial; }
+    .tab {
+      position: fixed; left: 16px; bottom: 16px; z-index: 999999;
+      background: #1f2430; color: #eef1f6; border-radius: 999px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3); font: 13px/1.5 -apple-system, system-ui, sans-serif;
+      padding: 8px 14px; cursor: pointer; border: none;
+    }
     .panel {
       position: fixed; left: 16px; bottom: 16px; z-index: 999999;
       width: 420px; max-height: 78vh; overflow-y: auto;
@@ -80,13 +95,15 @@ function renderPanel(host, model) {
       box-shadow: 0 6px 24px rgba(0,0,0,.35); font: 13px/1.5 -apple-system, system-ui, sans-serif;
       padding: 12px 14px;
     }
-    h3 { margin: 0 0 8px; font-size: 13px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .panel-head h3 { margin: 0; font-size: 13px; }
+    .close { background: none; border: none; color: #9aa2b1; cursor: pointer; font-size: 16px; padding: 0 4px; }
     label { display: block; font-size: 12px; margin: 8px 0 2px; color: #cbd2e0; }
     textarea { width: 100%; box-sizing: border-box; background: #14171f; color: #eef1f6; border: 1px solid #333a4a; border-radius: 6px; padding: 6px; font: 12px/1.4 monospace; }
     input[type="number"] { width: 90px; }
     .checks { display: flex; gap: 12px; flex-wrap: wrap; margin: 6px 0; }
     .checks label { display: flex; align-items: center; gap: 4px; margin: 0; }
-    button { cursor: pointer; border: none; border-radius: 6px; padding: 7px 12px; font-size: 12px; }
+    button.action { cursor: pointer; border: none; border-radius: 6px; padding: 7px 12px; font-size: 12px; }
     .primary { background: #4c7cf0; color: white; }
     .primary:disabled { background: #3a3f4d; color: #8a90a0; cursor: not-allowed; }
     .status { font-size: 12px; margin-top: 6px; min-height: 16px; }
@@ -95,10 +112,25 @@ function renderPanel(host, model) {
     .muted { color: #9aa2b1; font-size: 12px; }
   `;
 
+  if (isCollapsed(host)) {
+    root.innerHTML = `
+      <style>${style}</style>
+      <button class="tab" id="expand">🤖 AI 프롬프트 복사</button>
+    `;
+    root.getElementById('expand').addEventListener('click', () => {
+      host.dataset.collapsed = 'false';
+      renderPanel(host, model);
+    });
+    return;
+  }
+
   root.innerHTML = `
     <style>${style}</style>
     <div class="panel">
-      <h3>AI 작업용 프롬프트 복사 - ${model.sourceId}</h3>
+      <div class="panel-head">
+        <h3>AI 작업용 프롬프트 복사 - ${model.sourceId}</h3>
+        <button class="close" id="collapse" title="접기" aria-label="접기">×</button>
+      </div>
       <div class="muted">
         이 도구는 어떤 AI 모델도 직접 호출하지 않습니다. 아래 내용을 클립보드에 복사한 뒤,
         여러분이 직접 사용하는 AI 채팅 도구에 붙여넣어 확인하세요. 결과는 반드시 사실 여부를 검토하고,
@@ -123,9 +155,14 @@ function renderPanel(host, model) {
       <div class="muted" id="fetch-note">${model.fetchError ? `원문 자동 로딩 실패: ${escapeHtml(model.fetchError)} (원문 본문 항목을 해제하거나 직접 붙여넣어 사용하세요)` : ''}</div>
 
       <div class="status" id="length-status"></div>
-      <button class="primary" id="copy-btn">클립보드에 복사</button>
+      <button class="action primary" id="copy-btn">클립보드에 복사</button>
     </div>
   `;
+
+  root.getElementById('collapse').addEventListener('click', () => {
+    host.dataset.collapsed = 'true';
+    renderPanel(host, model);
+  });
 
   const chkMeta = root.getElementById('chk-meta');
   const chkBody = root.getElementById('chk-body');
