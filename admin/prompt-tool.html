@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>SWebin 뉴스레터 - AI 작업용 프롬프트 복사 도구</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        font:
+          14px/1.6 -apple-system,
+          system-ui,
+          sans-serif;
+        max-width: 760px;
+        margin: 24px auto;
+        padding: 0 16px;
+        background: #14171f;
+        color: #eef1f6;
+      }
+      h1 {
+        font-size: 18px;
+      }
+      p.lead {
+        color: #b7bfd0;
+      }
+      fieldset {
+        border: 1px solid #333a4a;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      }
+      legend {
+        padding: 0 6px;
+        color: #cbd2e0;
+      }
+      label {
+        display: block;
+        margin: 10px 0 4px;
+        font-size: 13px;
+        color: #cbd2e0;
+      }
+      input[type='text'],
+      input[type='number'],
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        background: #1f2430;
+        color: #eef1f6;
+        border: 1px solid #333a4a;
+        border-radius: 6px;
+        padding: 8px;
+        font: 13px/1.4 monospace;
+      }
+      textarea {
+        resize: vertical;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: end;
+        flex-wrap: wrap;
+      }
+      .checks {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 8px 0;
+      }
+      .checks label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+      }
+      button {
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        padding: 9px 14px;
+        font-size: 13px;
+        background: #4c7cf0;
+        color: white;
+      }
+      button.secondary {
+        background: #333a4a;
+      }
+      button:disabled {
+        background: #3a3f4d;
+        color: #8a90a0;
+        cursor: not-allowed;
+      }
+      .status {
+        font-size: 13px;
+        margin-top: 8px;
+        min-height: 18px;
+      }
+      .status.over {
+        color: #ffb4b4;
+      }
+      .status.ok {
+        color: #b8f0c2;
+      }
+      .muted {
+        color: #9aa2b1;
+        font-size: 12px;
+      }
+      a {
+        color: #9cc0ff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>AI 작업용 프롬프트 복사 도구 (독립 실행 버전)</h1>
+    <p class="lead">
+      이 페이지는 Sveltia CMS 화면(<code>/admin/</code>) 안에 뜨는 도구가 자동으로 값을 못 채웠을 때
+      쓰는 안전한 대체 화면입니다. 어떤 AI 모델도 직접 호출하지 않으며, 클립보드 복사 외에는 아무
+      것도 자동으로 저장하거나 발행하지 않습니다.
+    </p>
+
+    <fieldset>
+      <legend>1. 기사 불러오기 (선택 사항)</legend>
+      <div class="row">
+        <div style="flex: 1">
+          <label for="source-id">Source ID (예: 10192)</label>
+          <input type="text" id="source-id" placeholder="content/articles/&lt;여기&gt;/index.md" />
+        </div>
+        <button id="load-btn" class="secondary">GitHub에서 원문 불러오기</button>
+      </div>
+      <p class="muted" id="load-status"></p>
+      <p class="muted">
+        비공개 저장소이므로 로그인 토큰이 없으면 자동 로딩이 실패할 수 있습니다. 그 경우 아래 항목에
+        직접 원문/메타데이터/초안을 붙여넣어 사용하세요.
+      </p>
+    </fieldset>
+
+    <fieldset>
+      <legend>2. 포함할 항목 선택</legend>
+      <div class="checks">
+        <label><input type="checkbox" id="chk-meta" checked /> 원문 메타데이터</label>
+        <label><input type="checkbox" id="chk-body" checked /> 원문 본문</label>
+        <label><input type="checkbox" id="chk-draft" checked /> 현재 편집 초안</label>
+      </div>
+      <label for="max-chars">글자 수 제한 (기본 12000자)</label>
+      <input
+        type="number"
+        id="max-chars"
+        min="500"
+        step="500"
+        value="12000"
+        style="max-width: 160px"
+      />
+    </fieldset>
+
+    <fieldset>
+      <legend>3. 원문 메타데이터</legend>
+      <label for="meta-title">원문 제목</label>
+      <input type="text" id="meta-title" />
+      <label for="meta-author">작성자</label>
+      <input type="text" id="meta-author" />
+      <label for="meta-date">원문 날짜</label>
+      <input type="text" id="meta-date" />
+      <label for="meta-category">카테고리</label>
+      <input type="text" id="meta-category" />
+      <label for="meta-url">원문 URL</label>
+      <input type="text" id="meta-url" />
+    </fieldset>
+
+    <fieldset>
+      <legend>4. 원문 본문 (읽기 전용 원문 그대로 붙여넣기)</legend>
+      <textarea id="source-body" rows="10"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>5. 현재 편집 초안</legend>
+      <label for="draft-title">뉴스레터 제목 (초안)</label>
+      <textarea id="draft-title" rows="2"></textarea>
+      <label for="draft-summary">뉴스레터 요약 (초안)</label>
+      <textarea id="draft-summary" rows="3"></textarea>
+      <label for="draft-notes">편집 메모</label>
+      <textarea id="draft-notes" rows="2"></textarea>
+    </fieldset>
+
+    <div class="status" id="length-status"></div>
+    <button id="copy-btn">클립보드에 복사</button>
+
+    <p class="muted" style="margin-top: 24px">
+      복사한 내용은 여러분이 직접 사용하는 AI 채팅 도구에 붙여넣어 확인하세요. AI가 만든 결과는
+      반드시 사실 여부를 검토하고, 원문에 없는 내용(추측/과장/없는 통계·인용)은 그대로 받아들이지
+      마세요. 이 페이지는 어떤 모델도 대신 호출하지 않습니다. 사용법 상세는
+      <a
+        href="/admin/extensions/ai-prompt-copy.manual-test.md"
+        target="_blank"
+        rel="noopener noreferrer"
+        >ai-prompt-copy.manual-test.md</a
+      >를 참고하세요.
+    </p>
+
+    <script type="module">
+      import {
+        getBackendConfig,
+        fetchRepoFile,
+        discoverCmsAuthToken,
+      } from '/admin/extensions/github-contents.js';
+      import {
+        assemblePrompt,
+        computePromptLength,
+        exceedsLimit,
+        DEFAULT_MAX_PROMPT_CHARS,
+      } from '/admin/extensions/prompt-builder.js';
+
+      function parseFrontmatterFields(markdown, fieldNames) {
+        const result = {};
+        const frontmatterMatch = /^---\n([\s\S]*?)\n---/.exec(markdown || '');
+        const block = frontmatterMatch ? frontmatterMatch[1] : '';
+        for (const name of fieldNames) {
+          const re = new RegExp(`^${name}:\\s*"?(.*?)"?\\s*$`, 'm');
+          const m = re.exec(block);
+          if (m) result[name] = m[1];
+        }
+        return result;
+      }
+
+      function bodyAfterFrontmatter(markdown) {
+        return (markdown || '').replace(/^---\n[\s\S]*?\n---\n?/, '').trim();
+      }
+
+      const el = (id) => document.getElementById(id);
+
+      function currentInput() {
+        return {
+          sections: {
+            sourceMetadata: el('chk-meta').checked,
+            sourceBody: el('chk-body').checked,
+            draft: el('chk-draft').checked,
+          },
+          sourceBody: el('source-body').value,
+          metadata: {
+            title: el('meta-title').value,
+            author: el('meta-author').value,
+            publishedAt: el('meta-date').value,
+            category: el('meta-category').value,
+            url: el('meta-url').value,
+          },
+          draft: {
+            newsletterTitle: el('draft-title').value,
+            newsletterSummary: el('draft-summary').value,
+            editorNotes: el('draft-notes').value,
+          },
+        };
+      }
+
+      function recompute() {
+        const maxChars = Number(el('max-chars').value) || DEFAULT_MAX_PROMPT_CHARS;
+        const input = currentInput();
+        const length = computePromptLength(input);
+        const text = assemblePrompt(input);
+        const over = exceedsLimit(text, maxChars);
+        const status = el('length-status');
+        status.textContent = `현재 길이: ${length}자 / 제한: ${maxChars}자${over ? ' - 제한 초과: 포함 항목을 줄여주세요' : ''}`;
+        status.className = `status ${over ? 'over' : 'ok'}`;
+        el('copy-btn').disabled = over;
+        return { text, over };
+      }
+
+      [
+        'chk-meta',
+        'chk-body',
+        'chk-draft',
+        'max-chars',
+        'meta-title',
+        'meta-author',
+        'meta-date',
+        'meta-category',
+        'meta-url',
+        'source-body',
+        'draft-title',
+        'draft-summary',
+        'draft-notes',
+      ].forEach((id) => el(id).addEventListener('input', recompute));
+
+      el('copy-btn').addEventListener('click', async () => {
+        const { text, over } = recompute();
+        if (over) return;
+        try {
+          await navigator.clipboard.writeText(text);
+          const status = el('length-status');
+          status.textContent = '클립보드에 복사되었습니다.';
+          status.className = 'status ok';
+        } catch (err) {
+          const status = el('length-status');
+          status.textContent = `클립보드 복사 실패: ${err && err.message}`;
+          status.className = 'status over';
+        }
+      });
+
+      el('load-btn').addEventListener('click', async () => {
+        const sourceId = el('source-id').value.trim();
+        const loadStatus = el('load-status');
+        if (!sourceId) {
+          loadStatus.textContent = 'Source ID를 입력하세요.';
+          return;
+        }
+        loadStatus.textContent = '불러오는 중...';
+        try {
+          const backend = await getBackendConfig();
+          const token = discoverCmsAuthToken();
+          const basePath = `content/articles/${sourceId}`;
+          const [indexResult, sourceResult] = await Promise.all([
+            fetchRepoFile({
+              repo: backend.repo,
+              branch: backend.branch,
+              path: `${basePath}/index.md`,
+              token,
+            }),
+            fetchRepoFile({
+              repo: backend.repo,
+              branch: backend.branch,
+              path: `${basePath}/source.md`,
+              token,
+            }),
+          ]);
+          if (!indexResult.ok || !sourceResult.ok) {
+            loadStatus.textContent = `자동 로딩 실패 (${!indexResult.ok ? indexResult.reason : sourceResult.reason}). 아래 항목에 직접 붙여넣어 주세요.`;
+            return;
+          }
+          const fields = parseFrontmatterFields(indexResult.content, [
+            'source_title',
+            'source_author',
+            'source_published_at',
+            'source_category',
+            'source_url',
+            'newsletter_title',
+            'newsletter_summary',
+            'editor_notes',
+          ]);
+          el('meta-title').value = fields.source_title || '';
+          el('meta-author').value = fields.source_author || '';
+          el('meta-date').value = fields.source_published_at || '';
+          el('meta-category').value = fields.source_category || '';
+          el('meta-url').value = fields.source_url || '';
+          el('draft-title').value = fields.newsletter_title || '';
+          el('draft-summary').value = fields.newsletter_summary || '';
+          el('draft-notes').value = fields.editor_notes || '';
+          el('source-body').value = bodyAfterFrontmatter(sourceResult.content);
+          loadStatus.textContent = '불러왔습니다. 아래 내용을 확인/수정한 뒤 복사하세요.';
+          recompute();
+        } catch (err) {
+          loadStatus.textContent = `자동 로딩 실패: ${err && err.message}. 아래 항목에 직접 붙여넣어 주세요.`;
+        }
+      });
+
+      recompute();
+    </script>
+  </body>
+</html>

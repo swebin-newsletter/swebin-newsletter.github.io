@@ -1,0 +1,86 @@
+backend:
+  name: github
+  repo: swebin-dev/swebin-newsletter
+  branch: main
+  base_url: https://swebin-sveltia-auth.swebin-newsletter.workers.dev
+
+# Custom domain (newsletter.swebin.com) is not set up yet -- see MANUAL_ACTIONS_REQUIRED.md.
+# Points at the real GitHub Pages URL until that DNS/CNAME work happens.
+site_url: https://swebin-newsletter.github.io
+display_url: https://swebin-newsletter.github.io
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  - name: articles
+    label: 기사 편집
+    folder: content/articles
+    path: '{{source_id}}/index'
+    identifier_field: source_id
+    create: false
+    delete: false
+    summary: '{{source_id}} · {{status}} · {{newsletter_title}}'
+    fields:
+      - { label: Source ID, name: source_id, widget: string, readonly: true }
+      - { label: 원문 URL, name: source_url, widget: string, readonly: true }
+      - { label: 원문 제목, name: source_title, widget: string, readonly: true }
+      - { label: 작성자, name: source_author, widget: string, readonly: true }
+      - { label: 원문 날짜, name: source_published_at, widget: string, readonly: true }
+      - { label: 카테고리, name: source_category, widget: string, readonly: true }
+      - { label: 원문 요약, name: source_excerpt, widget: text, readonly: true, required: false }
+      - {
+          label: '원문 확인 완료 (자동 기록, 직접 수정 금지)',
+          name: last_reviewed_content_sha256,
+          widget: string,
+          required: false,
+          hint: '/admin/extensions/source-tools.js의 "원문 확인 완료로 표시" 버튼이 채웁니다. 원문의 content_sha256과 비교해 원문 변경 배지를 계산하는 데 쓰입니다.',
+        }
+      - {
+          label: 편집 상태,
+          name: status,
+          widget: select,
+          options: [inbox, editing, ready, excluded],
+        }
+      - { label: 뉴스레터 제목, name: newsletter_title, widget: string, required: false }
+      - { label: 뉴스레터 요약, name: newsletter_summary, widget: text, required: false }
+      - { label: 썸네일, name: thumbnail, widget: image, required: false }
+      - { label: 편집 메모, name: editor_notes, widget: text, required: false }
+      - { label: 뉴스레터 본문, name: body, widget: markdown, required: false }
+
+  - name: issues
+    label: 뉴스레터 호
+    folder: content/issues
+    path: '{{issue_id}}/index'
+    identifier_field: issue_id
+    create: true
+    delete: false
+    summary: '{{issue_id}} · {{status}} · {{subject}}'
+    fields:
+      - { label: 호 ID, name: issue_id, widget: string, hint: YYYY-MM }
+      - {
+          label: 상태,
+          name: status,
+          widget: select,
+          options: [draft, review_requested, approved, sending, sent, cancelled],
+        }
+      - { label: 발행일, name: publish_date, widget: datetime, time_format: false }
+      - { label: 메일 제목, name: subject, widget: string }
+      - { label: 프리헤더, name: preheader, widget: string, required: false }
+      - label: 기사
+        name: articles
+        widget: list
+        required: false
+        fields:
+          - label: 기사
+            name: source_id
+            widget: relation
+            collection: articles
+            search_fields: [source_id, source_title, newsletter_title]
+            value_field: source_id
+            display_fields: [source_id, newsletter_title]
+          - { label: 섹션, name: section, widget: string }
+          - { label: 순서, name: order, widget: number, value_type: int, min: 1 }
+          - { label: 재사용 허용, name: allow_reuse, widget: boolean, default: false }
+          - { label: 재사용 사유, name: reuse_reason, widget: text, required: false }
+          - { label: 재사용 승인자, name: reuse_approved_by, widget: string, required: false }
+      - { label: 도입문과 맺음말, name: body, widget: markdown, required: false }
