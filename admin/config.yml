@@ -22,15 +22,19 @@ collections:
     delete: false
     # 원문 날짜(source_published_at)를 맨 앞에 두어 목록에서 바로 최신순인지 알아볼 수 있게 하고,
     # sortable_fields로 "원문 날짜" 컬럼을 클릭해 최신순/오래된순 정렬을 직접 전환할 수 있게 합니다.
+    # Sveltia/Decap CMS의 정렬 드롭다운은 각 필드의 label을 그대로 보여주며(별도 정렬 전용
+    # 이름을 지정하는 설정은 없음), 그래서 아래 status/source_id 필드의 label을 정렬 목록에도
+    # 어울리게 짧게 정리했습니다 (기존의 긴 안내 문구는 hint로 옮김). 컬렉션 목록의 자유 검색창은
+    # 필드를 지정할 수 있는 설정이 없어 전체 항목을 검색하는 방식 그대로입니다.
     summary: '{{source_published_at}} · {{status}} · {{source_id}} · {{newsletter_title}}'
     sortable_fields: [source_published_at, status, source_id]
     fields:
       - {
-          label: '1. 편집 상태 (준비되면 "ready"로 바꿔주세요)',
+          label: '1. 편집 상태',
           name: status,
           widget: select,
           options: [inbox, editing, ready, excluded],
-          hint: 'inbox=크롤러가 방금 가져옴, editing=편집 중, ready=발행 준비 완료, excluded=사용 안 함',
+          hint: '준비되면 "ready"로 바꿔주세요. inbox=크롤러가 방금 가져옴, editing=편집 중, ready=발행 준비 완료, excluded=사용 안 함',
         }
       - {
           label: '2. 뉴스레터 제목',
@@ -60,11 +64,11 @@ collections:
           required: false,
         }
       - {
-          label: '— 원문 정보 (자동 수집됨, 직접 수정 금지) —',
+          label: 원문 ID,
           name: source_id,
           widget: string,
           readonly: true,
-          hint: '아래 필드들은 크롤러가 자동으로 채운 원문 정보입니다. 위 1~6번 필드만 직접 편집하세요.',
+          hint: '— 원문 정보 (자동 수집됨, 직접 수정 금지) — 아래 필드들은 크롤러가 자동으로 채운 원문 정보입니다. 위 1~6번 필드만 직접 편집하세요.',
         }
       - { label: 원문 URL, name: source_url, widget: string, readonly: true }
       - { label: 원문 제목, name: source_title, widget: string, readonly: true }
