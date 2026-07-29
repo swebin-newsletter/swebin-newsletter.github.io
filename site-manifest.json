@@ -8,23 +8,5 @@
     "updated_at": "2026-07-29T00:00:00+09:00",
     "thumbnail": "/articles/10194/thumbnail.webp",
     "source_count": 3
-  },
-  {
-    "issue_id": "2000-02",
-    "title": "(데모) 공개(published) 상태 화면 확인용 샘플",
-    "public_url": "https://swebin-newsletter.github.io/issues/2000-02/",
-    "publication_status": "published",
-    "published_at": "2026-07-29T00:00:00+09:00",
-    "updated_at": "2026-07-29T00:00:00+09:00",
-    "source_count": 1
-  },
-  {
-    "issue_id": "2000-01",
-    "title": "(데모) SWebin Newsletter 화면 미리보기",
-    "public_url": "https://swebin-newsletter.github.io/issues/2000-01/",
-    "publication_status": "sent",
-    "published_at": "",
-    "updated_at": "2026-07-28",
-    "source_count": 1
   }
 ]
