@@ -20,7 +20,10 @@ collections:
     identifier_field: source_id
     create: false
     delete: false
-    summary: '{{status}} · {{source_id}} · {{newsletter_title}}'
+    # 원문 날짜(source_published_at)를 맨 앞에 두어 목록에서 바로 최신순인지 알아볼 수 있게 하고,
+    # sortable_fields로 "원문 날짜" 컬럼을 클릭해 최신순/오래된순 정렬을 직접 전환할 수 있게 합니다.
+    summary: '{{source_published_at}} · {{status}} · {{source_id}} · {{newsletter_title}}'
+    sortable_fields: [source_published_at, status, source_id]
     fields:
       - {
           label: '1. 편집 상태 (준비되면 "ready"로 바꿔주세요)',
