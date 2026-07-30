@@ -91,35 +91,21 @@ collections:
     identifier_field: issue_id
     create: true
     delete: true
-    summary: '{{issue_id}} · {{status}} · {{visibility}} · {{subject}}'
+    summary: '{{issue_id}} · {{status}} · {{subject}}'
     fields:
-      - { label: '1. 호 ID', name: issue_id, widget: string, hint: '예: 2026-08 (연-월 형식)' }
+      - {
+          label: '1. 호 ID',
+          name: issue_id,
+          widget: string,
+          hint: '예: 2026-08 또는 2026-08-15 (연-월 또는 연-월-일 형식 둘 다 가능)',
+        }
       - {
           label: '2. 상태',
           name: status,
           widget: select,
-          options:
-            [
-              draft,
-              review_requested,
-              approved,
-              sending,
-              sent,
-              cancelled,
-              ready,
-              published,
-              unpublished,
-              archived,
-            ],
-          hint: 'draft=작성 중 → review_requested=검토 요청 → approved=발행 승인 → sending/sent는 발송 시 자동 전환됩니다. ready=이메일과 무관하게 공개 사이트에 낼 준비 완료 → published=공개 중 → unpublished/archived=비공개 (다음 배포부터 사이트에서 사라짐). 공개 사이트에서 내리려면 여기서 상태만 바꾸면 되며, 공개 저장소를 직접 수정하지 마세요.',
-        }
-      - {
-          label: '2b. 공개 여부',
-          name: visibility,
-          widget: select,
-          default: internal_demo,
-          options: [public, hidden, internal_demo],
-          hint: '상태(status)와는 별개의 스위치입니다. 공개(published/sent) 상태라도 여기를 숨김으로 바꾸면 다음 배포부터 즉시 공개 사이트에서 사라집니다(상태는 그대로 유지됩니다). 기본값은 internal_demo입니다 - 실수로 공개되는 것을 막기 위해, 새로 만든 호는 명시적으로 public으로 바꾸기 전까지는 어떤 상태여도 공개 사이트에 절대 나타나지 않고 관리자 미리보기에서만 보입니다.',
+          default: unpublished,
+          options: [published, unpublished],
+          hint: 'unpublished=비공개 (공개 사이트에 나타나지 않음, 관리자 미리보기에서만 확인 가능) → published=공개 중. published로 바꾸면 다음 배포부터 공개 사이트에 나타나고, 다시 unpublished로 바꾸면 사라집니다. 기본값은 unpublished입니다 - 실수로 공개되는 것을 막기 위해, 새로 만든 호는 명시적으로 published로 바꾸기 전까지는 공개 사이트에 절대 나타나지 않습니다. 공개 저장소를 직접 수정하지 마세요.',
         }
       - { label: '3. 발행일', name: publish_date, widget: datetime, time_format: false }
       - { label: '4. 메일 제목', name: subject, widget: string }
@@ -142,21 +128,38 @@ collections:
             search_fields: [source_id, source_title, newsletter_title]
             value_field: source_id
             display_fields: [newsletter_title, source_id]
-            hint: '"기사 편집"에서 status를 ready로 바꿔둔 기사만 검색되지는 않으니, 발행 준비가 끝난 기사만 골라주세요.'
+            hint: '"기사 편집"에서 status를 ready로 바꿔둔 기사만 검색되지는 않으니, 발행 준비가 끝난 기사만 골라주세요. 이미 다른 호에서 쓴 기사도 언제든 다시 선택할 수 있습니다.'
           - { label: '섹션 이름 (예: 이달의 이슈)', name: section, widget: string }
           - { label: 이 섹션 안에서의 순서, name: order, widget: number, value_type: int, min: 1 }
           - {
-              label: 재사용 허용,
-              name: allow_reuse,
+              label: 원문 기본값 그대로 사용,
+              name: use_auto_content,
               widget: boolean,
-              default: false,
-              hint: '이미 다른 호에 쓴 기사를 다시 쓰려면 체크하고 아래 사유/승인자를 채우세요.',
+              default: true,
+              hint: '체크하면 아래 제목/본문/썸네일을 무시하고 "기사 편집"에 저장된 원문 기본값을 그대로 사용합니다. 이 호에서만 다르게 표시하려면 체크를 해제하고 아래를 채우세요.',
             }
-          - { label: 재사용 사유, name: reuse_reason, widget: text, required: false }
-          - { label: 재사용 승인자, name: reuse_approved_by, widget: string, required: false }
-      - { label: '7. 도입문과 맺음말', name: body, widget: markdown, required: false }
+          - {
+              label: '제목 (직접 입력, 비우면 원문 기본값 사용)',
+              name: title_override,
+              widget: string,
+              required: false,
+            }
+          - {
+              label: '본문 (직접 입력, 비우면 원문 기본값 사용)',
+              name: body_override,
+              widget: text,
+              required: false,
+            }
+          - {
+              label: '썸네일 이미지 (직접 업로드, 비우면 원문 기본 이미지 사용)',
+              name: thumbnail_override,
+              widget: image,
+              required: false,
+            }
+      - { label: '7. 도입문', name: intro, widget: markdown, required: false }
+      - { label: '8. 맺음말', name: outro, widget: markdown, required: false }
       - {
-          label: '8. 공개 URL (비워두면 호 ID 그대로 사용)',
+          label: '9. 공개 URL (비워두면 호 ID 그대로 사용)',
           name: public_slug,
           widget: string,
           required: false,
@@ -198,11 +201,10 @@ collections:
               build_example_issue,
               publish_issue,
               unpublish_issue,
-              archive_issue,
               redeploy_site,
               send_test,
             ],
-          hint: 'crawl_recent=최근 기사 수집, crawl_article=특정 기사 재수집, build_example_issue=예시 호 생성, publish_issue=공개 전환, unpublish_issue=비공개 전환, archive_issue=보관 처리, redeploy_site=사이트 재배포, send_test=테스트 발송 요청',
+          hint: 'crawl_recent=최근 기사 수집, crawl_article=특정 기사 재수집, build_example_issue=예시 호 생성, publish_issue=공개 전환, unpublish_issue=비공개 전환, redeploy_site=사이트 재배포, send_test=테스트 발송 요청',
         }
       - {
           label: '3. 대상',
