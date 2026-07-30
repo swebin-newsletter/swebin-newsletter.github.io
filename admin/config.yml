@@ -90,7 +90,7 @@ collections:
     path: '{{issue_id}}/index'
     identifier_field: issue_id
     create: true
-    delete: false
+    delete: true
     summary: '{{issue_id}} · {{status}} · {{visibility}} · {{subject}}'
     fields:
       - { label: '1. 호 ID', name: issue_id, widget: string, hint: '예: 2026-08 (연-월 형식)' }
@@ -117,9 +117,9 @@ collections:
           label: '2b. 공개 여부',
           name: visibility,
           widget: select,
-          default: public,
+          default: internal_demo,
           options: [public, hidden, internal_demo],
-          hint: '상태(status)와는 별개의 스위치입니다. 공개(published/sent) 상태라도 여기를 숨김으로 바꾸면 다음 배포부터 즉시 공개 사이트에서 사라집니다(상태는 그대로 유지됩니다). "화면 확인용 샘플" 같은 내부 데모 콘텐츠는 internal_demo로 두세요 - 어떤 상태여도 공개 사이트에는 절대 나타나지 않고, 관리자 미리보기에서만 보입니다.',
+          hint: '상태(status)와는 별개의 스위치입니다. 공개(published/sent) 상태라도 여기를 숨김으로 바꾸면 다음 배포부터 즉시 공개 사이트에서 사라집니다(상태는 그대로 유지됩니다). 기본값은 internal_demo입니다 - 실수로 공개되는 것을 막기 위해, 새로 만든 호는 명시적으로 public으로 바꾸기 전까지는 어떤 상태여도 공개 사이트에 절대 나타나지 않고 관리자 미리보기에서만 보입니다.',
         }
       - { label: '3. 발행일', name: publish_date, widget: datetime, time_format: false }
       - { label: '4. 메일 제목', name: subject, widget: string }
