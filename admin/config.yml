@@ -26,8 +26,40 @@ collections:
     # 이름을 지정하는 설정은 없음), 그래서 아래 status/source_id 필드의 label을 정렬 목록에도
     # 어울리게 짧게 정리했습니다 (기존의 긴 안내 문구는 hint로 옮김). 컬렉션 목록의 자유 검색창은
     # 필드를 지정할 수 있는 설정이 없어 전체 항목을 검색하는 방식 그대로입니다.
-    summary: '{{source_published_at}} · {{status}} · {{source_id}} · {{newsletter_title}}'
-    sortable_fields: [source_published_at, status, source_id]
+    # 목록 한 줄(summary)에서 날짜·상태·ID 뒤, 제목 바로 앞에 에디터/외부필진 두 값을 각각 라벨과
+    # 함께 보여줍니다. 한 기사는 둘 중 한쪽만 값이 있으므로, 에디터 기사는 "에디터 이재민 · 외부필진
+    # —", 외부필진 기사는 "에디터 — · 외부필진 박인하" 처럼 어느 쪽인지 바로 구분됩니다.
+    # (Sveltia CMS 목록에는 스프레드시트식 별도 컬럼 기능이 없어 - 0.174/0.189 번들 모두
+    # summary_fields/list_columns 미지원 - 이 한 줄이 목록에서 필드를 보여주는 유일한 방법입니다.
+    # 사람별로 묶거나 골라 보려면 아래 view_groups/view_filters를 함께 씁니다.)
+    summary: "{{source_published_at}} · {{status}} · {{source_id}} · 에디터 {{source_editor | default('—')}} · 외부필진 {{source_external_writer | default('—')}} · {{newsletter_title}}"
+    sortable_fields:
+      [source_published_at, source_author, source_editor, source_external_writer, status, source_id]
+    # 작성자별로 "골라서 보는" 방법 두 가지를 함께 제공합니다.
+    #
+    # 1) 필터(view_filters) - 목록 위 "필터"에서 고르면 해당 기사만 남습니다. Sveltia는 pattern을
+    #    정규식으로 컴파일해 값에 test()하므로(번들의 M2 = regex ? regex.test(String(value)) : ...),
+    #    `^.+$`는 "값이 비어있지 않음" = 그 역할로 표기된 기사만, `^이름$`은 그 사람만 정확히
+    #    고릅니다. 이름을 일일이 나열하지 않아도 "외부필진 기사만"으로 좁힐 수 있어, 새 외부
+    #    필진이 생겨도 설정을 고칠 필요가 없습니다.
+    # 2) 그룹(view_groups) - 이름별로 묶어서 한눈에 봅니다. 목록에 실제 존재하는 값으로 자동
+    #    생성되므로 새 작성자도 자동 반영됩니다.
+    #
+    # 둘을 같이 쓰면 "외부필진 기사만" 필터 + "외부필진별" 그룹 = 외부 필진만 사람별로 정리된
+    # 색인이 됩니다.
+    view_filters:
+      - { label: 외부필진 기사만, field: source_external_writer, pattern: '^.+$' }
+      - { label: 에디터 기사만, field: source_editor, pattern: '^.+$' }
+      - { label: '에디터 · 이재민', field: source_editor, pattern: '^이재민$' }
+      - { label: '에디터 · 이세인', field: source_editor, pattern: '^이세인$' }
+      - { label: '에디터 · 박세민', field: source_editor, pattern: '^박세민$' }
+      - { label: '에디터 · 김상철', field: source_editor, pattern: '^김상철$' }
+    view_groups:
+      - { label: 작성자별(전체), field: source_author }
+      - { label: 에디터별, field: source_editor }
+      - { label: 외부필진별, field: source_external_writer }
+      - { label: 카테고리별, field: source_category }
+      - { label: 편집 상태별, field: status }
     fields:
       - {
           label: '1. 편집 상태',
@@ -73,6 +105,22 @@ collections:
       - { label: 원문 URL, name: source_url, widget: string, readonly: true }
       - { label: 원문 제목, name: source_title, widget: string, readonly: true }
       - { label: 작성자, name: source_author, widget: string, readonly: true }
+      - {
+          label: 에디터,
+          name: source_editor,
+          widget: string,
+          readonly: true,
+          required: false,
+          hint: '원문에 "에디터"로 표기된 경우의 작성자명입니다. 외부필진 기사라면 비어 있습니다.',
+        }
+      - {
+          label: 외부필진,
+          name: source_external_writer,
+          widget: string,
+          readonly: true,
+          required: false,
+          hint: '원문에 "외부필진"으로 표기된 경우의 작성자명입니다. 에디터 기사라면 비어 있습니다. 같은 사람도 기사에 따라 에디터/외부필진이 달라지므로 사람이 아니라 기사 단위로 구분됩니다.',
+        }
       - { label: 원문 날짜, name: source_published_at, widget: string, readonly: true }
       - { label: 카테고리, name: source_category, widget: string, readonly: true }
       - { label: 원문 요약, name: source_excerpt, widget: text, readonly: true, required: false }
