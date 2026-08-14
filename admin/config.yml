@@ -48,6 +48,12 @@ collections:
     # 이름 목록은 실제 데이터에서 생성했습니다(scratchpad/gen-author-filters.mjs). 새 필진이
     # 생기면 필터에는 자동 반영되지 않지만, 아래 view_groups의 "외부필진별"에는 자동으로 나타납니다.
     # 이름은 normalizeAuthorName으로 정규화되어(배가혜/이현석 등) 회사·직함 없이 표시됩니다.
+    # [중요] 이 필터들의 "다중 선택"은 교집합(AND)입니다. 서로 다른 이름을 2개 이상 고르면
+    # (한 기사의 작성자는 한 명이므로) 결과가 비어 버립니다 -- Sveltia 번들이 선택 필터를
+    # selectedFilters.every(...)로 적용하도록 하드코딩되어 있고(0.174.0/0.189.1 동일), OR로
+    # 바꾸는 config 옵션이 없습니다. 한 사람 전체 기사만 볼 때는 아래 ⑤ "이름 · OOO" 하나면
+    # 되고(단일 선택은 정상), 여러 사람을 한 목록에서 함께 보려면 아래 view_groups의
+    # "작성자별 (여러 명 함께 보기)" 그룹을 사용하세요.
     view_filters:
       # ① 에디터 전체
       - { label: 에디터 전체, field: source_editor, pattern: '^.+$' }
@@ -91,8 +97,11 @@ collections:
       - { label: '이름 · 이지용 (1)', field: source_author, pattern: '^이지용$' }
       - { label: '이름 · 조혜리 (1)', field: source_author, pattern: '^조혜리$' }
       - { label: '이름 · 최예람 (1)', field: source_author, pattern: '^최예람$' }
+    # 여러 사람의 기사를 한 목록에서 함께 보고 싶을 때 쓰는 경로입니다(필터 다중 선택이 아니라).
+    # "작성자별" 그룹은 각 작성자를 접이식 섹션으로 전부 나열하므로 사실상 합집합 보기가 됩니다.
+    # 새 필진이 생기면 필터(view_filters)에는 자동 반영되지 않지만 이 그룹에는 자동으로 나타납니다.
     view_groups:
-      - { label: 작성자별(전체), field: source_author }
+      - { label: 작성자별 (여러 명 함께 보기), field: source_author }
       - { label: 에디터별, field: source_editor }
       - { label: 외부필진별, field: source_external_writer }
       - { label: 카테고리별, field: source_category }
