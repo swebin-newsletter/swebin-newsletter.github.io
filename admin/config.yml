@@ -70,13 +70,13 @@ collections:
       - { label: '외부필진 · 배가혜 (1)', field: source_external_writer, pattern: '^배가혜$' }
       - { label: '외부필진 · 조익상 (1)', field: source_external_writer, pattern: '^조익상$' }
       - { label: '외부필진 · 성인수 (1)', field: source_external_writer, pattern: '^성인수$' }
-      - { label: '외부필진 · 이세인t (1)', field: source_external_writer, pattern: '^이세인t$' }
+      - { label: '외부필진 · 이세인 (1)', field: source_external_writer, pattern: '^이세인$' }
       - { label: '외부필진 · 이지용 (1)', field: source_external_writer, pattern: '^이지용$' }
       - { label: '외부필진 · 조혜리 (1)', field: source_external_writer, pattern: '^조혜리$' }
       - { label: '외부필진 · 최예람 (1)', field: source_external_writer, pattern: '^최예람$' }
       # ⑤ 이름별 (역할 무관, 그 사람 기사 전부)
       - { label: '이름 · 이재민 (3382)', field: source_author, pattern: '^이재민$' }
-      - { label: '이름 · 이세인 (2810)', field: source_author, pattern: '^이세인$' }
+      - { label: '이름 · 이세인 (2811)', field: source_author, pattern: '^이세인$' }
       - { label: '이름 · 박세민 (493)', field: source_author, pattern: '^박세민$' }
       - { label: '이름 · 김상철 (62)', field: source_author, pattern: '^김상철$' }
       - { label: '이름 · 박인하 (4)', field: source_author, pattern: '^박인하$' }
@@ -88,7 +88,6 @@ collections:
       - { label: '이름 · 배가혜 (1)', field: source_author, pattern: '^배가혜$' }
       - { label: '이름 · 조익상 (1)', field: source_author, pattern: '^조익상$' }
       - { label: '이름 · 성인수 (1)', field: source_author, pattern: '^성인수$' }
-      - { label: '이름 · 이세인t (1)', field: source_author, pattern: '^이세인t$' }
       - { label: '이름 · 이지용 (1)', field: source_author, pattern: '^이지용$' }
       - { label: '이름 · 조혜리 (1)', field: source_author, pattern: '^조혜리$' }
       - { label: '이름 · 최예람 (1)', field: source_author, pattern: '^최예람$' }
